@@ -15,8 +15,9 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     @Transactional
-    public Product createProduct(String name, String description, Long price, Integer stock) {
+    public Product createProduct(Long brandId, String name, String description, Long price, Integer stock) {
         Product product = Product.builder()
+            .brandId(brandId)
             .name(name)
             .description(description)
             .price(price)
@@ -37,9 +38,9 @@ public class ProductService {
     }
 
     @Transactional
-    public Product updateProduct(Long id, String name, String description, Long price, Integer stock) {
+    public Product updateProduct(Long id, Long brandId, String name, String description, Long price, Integer stock) {
         Product product = getProduct(id);
-        product.update(name, description, price, stock);
+        product.update(brandId, name, description, price, stock);
         return productRepository.save(product);
     }
 

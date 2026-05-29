@@ -36,6 +36,12 @@ out/
 ### VS Code ###
 .vscode/
 
+### Agent local state ###
+.omc/
+.claude/
+Configure
+Task
+
 ### Kotlin ###
 .kotlin
 
