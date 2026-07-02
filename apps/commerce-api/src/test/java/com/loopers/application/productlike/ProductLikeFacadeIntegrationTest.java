@@ -1,7 +1,9 @@
 package com.loopers.application.productlike;
 
+import com.loopers.application.activitylog.UserActivityLogHandler;
 import com.loopers.domain.product.ProductModel;
 import com.loopers.domain.product.ProductService;
+import com.loopers.domain.productlike.ProductLikedEvent;
 import com.loopers.domain.user.UserModel;
 import com.loopers.infrastructure.product.ProductJpaRepository;
 import com.loopers.infrastructure.productlike.ProductLikeJpaRepository;
@@ -27,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
@@ -50,6 +53,9 @@ class ProductLikeFacadeIntegrationTest {
 
     @MockitoSpyBean
     private ProductService productService;
+
+    @MockitoSpyBean
+    private UserActivityLogHandler userActivityLogHandler;
 
     @AfterEach
     void tearDown() {
@@ -261,6 +267,26 @@ class ProductLikeFacadeIntegrationTest {
             // 집계가 실패했으므로 like_count는 증가하지 않는다
             assertThat(productJpaRepository.findById(product.getId()).orElseThrow().getLikeCount())
                 .as("집계가 실패했으므로 like_count는 증가하지 않는다").isEqualTo(0L);
+        }
+    }
+
+    @DisplayName("좋아요 이벤트는 하나의 사실을 여러 소비자가 소비하여,")
+    @Nested
+    class OneFactManyConsumers {
+
+        @DisplayName("집계 리스너(비동기)와 행동로깅 리스너(동기)가 함께 반응한다.")
+        @Test
+        void bothAggregationAndActivityLogReact_onLike() {
+            // arrange
+            saveUser("user1");
+            ProductModel product = saveProduct();
+
+            // act
+            productLikeFacade.like("user1", "pw1", product.getId());
+
+            // assert: 같은 ProductLiked를 행동로깅(동기 AFTER_COMMIT)은 즉시, 집계(@Async)는 곧 반영
+            verify(userActivityLogHandler).onProductLiked(any(ProductLikedEvent.class));
+            awaitLikeCount(product.getId(), 1L);
         }
     }
 
