@@ -68,9 +68,12 @@ public class OrderFacade {
         );
         List<OrderItemModel> savedItems = orderService.getOrderItems(order.getId());
 
-        // 주문 완료 사실을 발행한다. 알림/유저행동 로깅 같은 부가 관심사는 이 트랜잭션 커밋 뒤
+        // 주문 완료 사실을 발행한다. 알림/유저행동 로깅/판매량 집계 같은 부가 관심사는 이 트랜잭션 커밋 뒤
         // AFTER_COMMIT 리스너가 각자 구독해 처리한다(본 주문 로직과 경계 분리).
-        eventPublisher.publishEvent(new OrderCompletedEvent(order.getId(), user.getId(), finalPrice));
+        List<OrderCompletedEvent.Line> eventLines = itemCommands.stream()
+            .map(c -> new OrderCompletedEvent.Line(c.productId(), c.quantity()))
+            .toList();
+        eventPublisher.publishEvent(new OrderCompletedEvent(order.getId(), user.getId(), finalPrice, eventLines));
 
         return OrderInfo.of(order, savedItems.stream().map(OrderItemInfo::from).toList());
     }
