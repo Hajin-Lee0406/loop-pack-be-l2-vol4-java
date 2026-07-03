@@ -31,7 +31,7 @@ public class CouponIssueConsumer {
     )
     public void onCouponIssueRequests(List<CouponIssueRequestMessage> messages, Acknowledgment acknowledgment) {
         for (CouponIssueRequestMessage message : messages) {
-            couponIssueService.issue(message.couponId(), message.userId());
+            couponIssueService.issue(message.requestId(), message.couponId(), message.userId());
         }
         acknowledgment.acknowledge();
     }

@@ -5,6 +5,7 @@ import com.loopers.application.coupon.UserCouponInfo;
 import com.loopers.interfaces.api.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -40,5 +41,16 @@ public class CouponV1Controller implements CouponV1ApiSpec {
     ) {
         String requestId = couponFacade.requestIssue(loginId, loginPw, couponId);
         return ApiResponse.success(CouponV1Dto.IssueRequestResponse.accepted(requestId));
+    }
+
+    @GetMapping("/issue-requests/{requestId}")
+    @Override
+    public ApiResponse<CouponV1Dto.IssueRequestStatusResponse> getIssueRequestStatus(
+        @RequestHeader("X-Loopers-LoginId") String loginId,
+        @RequestHeader("X-Loopers-LoginPw") String loginPw,
+        @PathVariable String requestId
+    ) {
+        String status = couponFacade.getIssueStatus(requestId);
+        return ApiResponse.success(new CouponV1Dto.IssueRequestStatusResponse(requestId, status));
     }
 }

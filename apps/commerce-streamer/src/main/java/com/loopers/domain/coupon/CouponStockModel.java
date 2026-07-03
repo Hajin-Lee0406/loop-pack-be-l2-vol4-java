@@ -25,6 +25,13 @@ public class CouponStockModel extends BaseEntity {
 
     protected CouponStockModel() {}
 
+    /** 재고 행 생성용(주로 테스트/초기 세팅). 운영 발급 경로는 네이티브 UPDATE만 사용한다. */
+    public CouponStockModel(Long couponId, int quota) {
+        this.couponId = couponId;
+        this.quota = quota;
+        this.issued = 0;
+    }
+
     public Long getCouponId() {
         return couponId;
     }

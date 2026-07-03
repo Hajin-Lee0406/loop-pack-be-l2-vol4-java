@@ -18,6 +18,13 @@ public class CouponV1Dto {
         }
     }
 
+    /** 발급 요청 상태 조회 응답. status: PENDING / ISSUED / SOLD_OUT. */
+    public record IssueRequestStatusResponse(
+        String requestId,
+        String status
+    ) {
+    }
+
     public record IssueResponse(
         Long userCouponId,
         Long couponId,

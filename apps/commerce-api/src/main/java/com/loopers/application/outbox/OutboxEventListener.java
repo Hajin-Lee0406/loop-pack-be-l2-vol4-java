@@ -2,6 +2,7 @@ package com.loopers.application.outbox;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.loopers.application.coupon.CouponIssueRequestedEvent;
 import com.loopers.confg.kafka.Topics;
 import com.loopers.domain.order.OrderCompletedEvent;
 import com.loopers.domain.outbox.OutboxEvent;
@@ -50,6 +51,13 @@ public class OutboxEventListener {
             .toList();
         OrderEventPayload payload = new OrderEventPayload(eventId, event.orderId(), event.userId(), lines);
         append(Topics.ORDER_EVENTS, String.valueOf(event.orderId()), "OrderCompleted", eventId, payload);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    public void onCouponIssueRequested(CouponIssueRequestedEvent event) {
+        // eventId = requestId: 추적/상태 조회 키와 outbox/메시지 식별자를 일치시킨다. 파티션 키 = couponId.
+        append(Topics.COUPON_ISSUE_REQUESTS, String.valueOf(event.couponId()),
+            "CouponIssueRequested", event.requestId(), event);
     }
 
     private void appendCatalog(String type, Long productId, Long userId) {
