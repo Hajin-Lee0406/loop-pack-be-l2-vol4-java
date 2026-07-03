@@ -12,4 +12,7 @@ public final class Topics {
 
     /** 주문 완료 이벤트(OrderCompleted). 파티션 키 = orderId. */
     public static final String ORDER_EVENTS = "order-events";
+
+    /** 선착순 쿠폰 발급 요청. 파티션 키 = couponId (같은 쿠폰 요청을 한 파티션에서 순서대로 처리). */
+    public static final String COUPON_ISSUE_REQUESTS = "coupon-issue-requests";
 }
