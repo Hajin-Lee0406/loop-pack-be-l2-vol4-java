@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -107,6 +109,55 @@ class WaitingQueueServiceIntegrationTest {
                 waitingQueueService.getPosition(999L)
             );
             assertThat(exception.getErrorType()).isEqualTo(ErrorType.NOT_FOUND);
+        }
+    }
+
+    @DisplayName("대기열 앞에서 N명을 꺼낼 때,")
+    @Nested
+    class PollFront {
+
+        @DisplayName("가장 앞선 N명을 진입 순서대로 반환하고, 큐에서 제거한다.")
+        @Test
+        void returnsFrontUsersInOrder_andRemovesThem() {
+            // arrange
+            waitingQueueService.enter(1L);
+            waitingQueueService.enter(2L);
+            waitingQueueService.enter(3L);
+
+            // act
+            List<Long> polled = waitingQueueService.pollFront(2);
+
+            // assert
+            assertAll(
+                () -> assertThat(polled).containsExactly(1L, 2L),
+                // 꺼낸 뒤에는 뒤에 있던 3L만 남아 순번 0이 된다.
+                () -> assertThat(waitingQueueService.getPosition(3L).rank()).isEqualTo(0L),
+                () -> assertThat(waitingQueueService.getPosition(3L).total()).isEqualTo(1L)
+            );
+        }
+
+        @DisplayName("대기 인원보다 많이 요청하면 있는 만큼만 반환하고 큐를 비운다.")
+        @Test
+        void returnsAllAvailable_whenRequestedMoreThanSize() {
+            // arrange
+            waitingQueueService.enter(1L);
+            waitingQueueService.enter(2L);
+
+            // act
+            List<Long> polled = waitingQueueService.pollFront(10);
+
+            // assert
+            assertAll(
+                () -> assertThat(polled).containsExactly(1L, 2L),
+                () -> assertThat(waitingQueueService.pollFront(1)).isEmpty()
+            );
+        }
+
+        @DisplayName("빈 대기열에서 꺼내면 빈 목록을 반환한다.")
+        @Test
+        void returnsEmpty_whenQueueEmpty() {
+            // act & assert
+            assertThat(waitingQueueService.pollFront(5)).isEmpty();
         }
     }
 }

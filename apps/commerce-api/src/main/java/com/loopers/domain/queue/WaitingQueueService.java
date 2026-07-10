@@ -4,6 +4,8 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class WaitingQueueService {
 
@@ -32,5 +34,15 @@ public class WaitingQueueService {
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "대기열에 없는 유저입니다."));
         long total = waitingQueueRepository.size();
         return new QueuePosition(rank, total);
+    }
+
+    /**
+     * 대기열 앞에서 최대 {@code count}명을 꺼낸다(입장시킬 대상 선발).
+     * 스케줄러가 주기적으로 호출한다.
+     *
+     * @return 꺼낸 userId 목록(진입 순서). 비어 있으면 빈 목록.
+     */
+    public List<Long> pollFront(long count) {
+        return waitingQueueRepository.pollFront(count);
     }
 }

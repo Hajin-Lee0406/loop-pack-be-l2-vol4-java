@@ -1,5 +1,6 @@
 package com.loopers.domain.queue;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -23,4 +24,12 @@ public interface WaitingQueueRepository {
 
     /** 현재 대기열 전체 인원. */
     long size();
+
+    /**
+     * 대기열 앞에서 최대 {@code count}명을 원자적으로 꺼낸다(ZPOPMIN).
+     * score가 낮은(먼저 진입한) 순서대로 반환하며, 반환된 member는 큐에서 제거된다.
+     *
+     * @return 꺼낸 userId 목록(진입 순서). 대기열이 비었으면 빈 목록.
+     */
+    List<Long> pollFront(long count);
 }
