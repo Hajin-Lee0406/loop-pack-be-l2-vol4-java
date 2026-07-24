@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -19,6 +21,8 @@ import java.util.List;
 @Service
 public class ProductMetricsService {
 
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+
     private final ProductMetricJpaRepository productMetricJpaRepository;
     private final EventHandledJpaRepository eventHandledJpaRepository;
 
@@ -28,7 +32,7 @@ public class ProductMetricsService {
         if (alreadyHandled(eventId)) {
             return;
         }
-        productMetricJpaRepository.upsert(productId, likeDelta, 0L);
+        productMetricJpaRepository.upsert(today(), productId, likeDelta, 0L);
         eventHandledJpaRepository.save(new EventHandledModel(eventId));
     }
 
@@ -38,10 +42,16 @@ public class ProductMetricsService {
         if (alreadyHandled(eventId)) {
             return;
         }
+        LocalDate statDate = today();
         for (SalesLine line : lines) {
-            productMetricJpaRepository.upsert(line.productId(), 0L, line.quantity());
+            productMetricJpaRepository.upsert(statDate, line.productId(), 0L, line.quantity());
         }
         eventHandledJpaRepository.save(new EventHandledModel(eventId));
+    }
+
+    /** 집계일자 = 이벤트를 소비한 시점의 KST 날짜. */
+    private LocalDate today() {
+        return LocalDate.now(KST);
     }
 
     private boolean alreadyHandled(String eventId) {

@@ -99,11 +99,13 @@ class ProductMetricsConsumerIntegrationTest {
     }
 
     private Long likeCount(Long productId) {
-        return productMetricJpaRepository.findById(productId).map(ProductMetricModel::getLikeCount).orElse(null);
+        List<ProductMetricModel> rows = productMetricJpaRepository.findByProductId(productId);
+        return rows.isEmpty() ? null : rows.stream().mapToLong(ProductMetricModel::getLikeCount).sum();
     }
 
     private Long salesCount(Long productId) {
-        return productMetricJpaRepository.findById(productId).map(ProductMetricModel::getSalesCount).orElse(null);
+        List<ProductMetricModel> rows = productMetricJpaRepository.findByProductId(productId);
+        return rows.isEmpty() ? null : rows.stream().mapToLong(ProductMetricModel::getSalesCount).sum();
     }
 
     private void send(String topic, String key, Object payload) {
