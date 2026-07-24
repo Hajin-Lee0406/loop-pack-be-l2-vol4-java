@@ -1,5 +1,6 @@
 package com.loopers.domain.ranking;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 
@@ -25,11 +26,12 @@ public record RankingPeriod(LocalDate start, LocalDate end) {
     }
 
     /**
-     * 주간: baseDate가 속한 "한 주"의 시작일 ~ 종료일.
-     * TODO(human): baseDate가 포함된 주의 start/end를 계산해 RankingPeriod로 반환하세요.
+     * 주간: baseDate가 속한 "한 주"의 월요일 ~ 일요일 (ISO 8601, 월요일 시작).
+     * (예: 2026-07-24(금) → 2026-07-20(월) ~ 2026-07-26(일))
      */
     private static RankingPeriod weekly(LocalDate baseDate) {
-        // TODO(human)
-        throw new UnsupportedOperationException("weekly period not implemented");
+        LocalDate start = baseDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate end = start.plusDays(6);
+        return new RankingPeriod(start, end);
     }
 }
